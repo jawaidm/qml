@@ -169,4 +169,63 @@ ogrinfo -so qml/data/json/dpaw_regions.json dpaw_regions
 
 ./manage.py ogrinspect --name-field region --blank true --null true --layer dpaw_regions --mapping --multi world/data/json/dpaw_regions.json DpawRegion
 
+# Test from shell  
+
+## Load cddp:dpaw_region data into DpawRegion model 
+### (https://kmi.dbca.wa.gov.au/geoserver/cddp/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cddp:dpaw_regions&maxFeatures=50&outputFormat=application%2Fjson)  
+from qml.utils import load_dpaw  
+load_dpaw.run()  
+
+
+poly = {'type': 'FeatureCollection',  
+ 'features': [{'type': 'Feature',  
+   'properties': {},  
+   'geometry': {'type': 'Polygon',   
+    'coordinates': [[[122.40966796874999, -28.709860843942845],  
+      [128.38623046875, -28.709860843942845],  
+      [128.38623046875, -22.28909641872304],  
+      [122.40966796874999, -22.28909641872304],  
+      [122.40966796874999, -28.709860843942845]]]}}]}  
+
+from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon  
+import json  
+
+geom_str = json.dumps(poly['features'][0]['geometry'])  
+geom = GEOSGeometry(geom_str)  
+multipoly = MultiPolygon([geom])  
+
+intersection_geom = []  
+
+for region in DpawRegion.objects.filter(geom__intersects=multipoly):  
+    intersection_geom.append(multipoly.intersection(region.geom))  
+    print(region)  
+
+GOLDFIELDS  
+PILBARA  
+
+
+
+
+from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon  
+import json  
+
+with open('qml/data/json/south_wa.json') as f:  
+    data = json.load(f)  
+
+for ft in data['features']:  
+    geom_str = json.dumps(ft['geometry'])  
+    geom = GEOSGeometry(geom_str)  
+    try:  
+        if isinstance(geom, MultiPolygon):  
+            continue  
+        elif isinstance(geom, Polygon):  
+            geom = MultiPolygon([geom])  
+     
+            intersection_geom = []   
+            for region in DpawRegion.objects.filter(geom__intersects=geom):  
+                intersection_geom.append(geom.intersection(region.geom))  
+                print(region)  
+    except TypeError as e:   
+        print(e)  
+
 
