@@ -59,3 +59,7 @@ django-phonenumber-field==5.2.0
 gevent==21.1.2
 whitenoise==5.3.0
 django-multiselectfield==0.1.12
+
+# Needed for shell_plus crash issue
+jedi==0.17.2
+parso==0.7.1
