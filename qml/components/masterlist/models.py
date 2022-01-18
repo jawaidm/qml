@@ -27,7 +27,11 @@ class DpawRegion(models.Model):
 class Feature(models.Model):
     attributes = JSONField(db_index=True)
     geometry = models.MultiPolygonField()
-    layer = models.ForeignKey('Layer', on_delete=models.CASCADE, related_name='%(app_label)s_%(class)s_features')
+    layer = models.ForeignKey('Layer', on_delete=models.CASCADE, related_name='%(class)s_features')
+ 
+    @property
+    def srid(self):
+        return self.geometry.crs.srid
 
     class Meta:
         app_label = 'qml'
@@ -43,9 +47,16 @@ class Feature(models.Model):
 class LayerBase(models.Model):
     name = models.CharField(max_length=64)
     type = models.CharField(max_length=32, null=True, blank=True)
-    srid = models.IntegerField(null=True, blank=True)
+    #srid = models.IntegerField(null=True, blank=True)
 
     geojson = JSONField('Layer GeoJSON')
+
+    @property
+    def srid(self):
+        if hasattr(self, 'feature_features') and self.feature_features.exists():
+            feature = self.feature_features.first()
+            return feature.srid
+        return None
 
     class Meta:
         abstract = True
