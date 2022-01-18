@@ -1,7 +1,7 @@
 git+https://github.com/xzzy/webtemplate.git#egg=webtemplate_dbca
 git+git://github.com/dbca-wa/dbca-utils@1.1.1#egg=dbca-utils
 psycopg2-binary==2.8.5
-Django==3.2.4
+Django==3.2.11
 django-extensions==1.9.8
 ipython==7.19.0
 social-auth-app-django==2.1.0
