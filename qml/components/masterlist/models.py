@@ -1,11 +1,14 @@
 #from django.db import models
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields.jsonb import JSONField
+import copy
 
 
 # Next lin needed, to migrate ledger_api_clinet module
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
+import logging
+logger = logging.getLogger(__name__)
 
 
 class DpawRegion(models.Model):
@@ -65,50 +68,50 @@ class LayerBase(models.Model):
     def __str__(self):
         return f'{self.type}:{self.name}' if self.type else f'{self.name}'
 
+
 class Layer(LayerBase):
 
-#    def layer_history(self):
-#        return LayerHistory.objects.filter(name=self).order_by('-version')
-#
-#    def save(self, *args, **kwargs):
-#        super(Book, self).save(*args, **kwargs)
-#        # save summary history
-#        layer_history = self.layer_history()
-#        if not layer_history or self.summary != layer_history[0].text:
-#            newLayer = LayerHistory(layer=self, name=self.name, type=self.type, srid=self.srid, geojson=self.geojson, geometry=self.geometry)
-#            newLayer.save()
+    current = models.BooleanField()
+
+    @property
+    def layer_history(self):
+        return LayerHistory.objects.filter(layer=self).order_by('-version')
+
+    def save(self, *args, **kwargs):
+        from qml.utils.loader_utils import sorting
+        super(Layer, self).save(*args, **kwargs)
+        # save layer history
+        import ipdb; ipdb.set_trace()
+        #_layer copy.deepcopy(layer)
+        layer_history = self.layer_history
+        if not layer_history or sorting(self.geojson) != sorting(layer_history[0].geojson):
+            newLayer = LayerHistory(layer=self, name=self.name, type=self.type, geojson=self.geojson)
+            newLayer.save()
 
     class Meta:
         app_label = 'qml'
+        #unique_together = ('name', 'type',)
 
     def __str__(self):
         return f'{self.type}:{self.name}' if self.type else f'{self.name}'
 
 
-#class LayerHistory(LayerBase):
-#    """ From https://stackoverflow.com/questions/10540111/store-versioned-history-of-field-in-a-django-model """
-#    version = models.IntegerField(editable=False)
-#    layer = models.ForeignKey('Layer')
-#
-#    class Meta:
-#        unique_together = ('version', 'layer',)
-#
-#    def save(self, *args, **kwargs):
-#        # start with version 1 and increment it for each book
-#        current_version = LayerHistory.objects.filter(layer=self.layer).order_by('-version')[:1]
-#        self.version = current_version[0].version + 1 if current_version else 1
-#        super(LayerHistory, self).save(*args, **kwargs)
-#
-#    def __str__(self):
-#        return f'{self.type}:{self.name}' if self.type else f'{self.name}'
-#
-#    class Meta:
-#        app_label = 'qml'
+class LayerHistory(LayerBase):
+    """ From https://stackoverflow.com/questions/10540111/store-versioned-history-of-field-in-a-django-model """
+    version = models.IntegerField(editable=False)
+    layer = models.ForeignKey('Layer', on_delete=models.CASCADE, related_name='+')
 
+    def save(self, *args, **kwargs):
+        # start with version 1 and increment it for each book
+        #current_version = LayerHistory.objects.filter(layer=self.layer).order_by('-version')[:1]
+        current_version = LayerHistory.objects.filter(layer__name=self.layer.name, layer__type=self.layer.type).order_by('-version')[:1]
+        self.version = current_version[0].version + 1 if current_version else 1
+        super(LayerHistory, self).save(*args, **kwargs)
 
-#class Question1(models.Model):
-#    question_text = models.CharField(max_length=200)
-#    pub_date = models.DateTimeField('date published')
-#
-#    class Meta:
-#        app_label = 'qml'
+    def __str__(self):
+        return f'{self.type}:{self.name}, verson: {self.version}' if self.type else f'{self.name}, verson: {self.version}'
+
+    class Meta:
+        app_label = 'qml'
+        unique_together = ('version', 'layer',)
+
