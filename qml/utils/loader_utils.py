@@ -42,11 +42,24 @@ class LayerLoader():
         except:
             raise
 
+    def retrieve_layer_from_file(self, filename='qml/data/json/dpaw_regions.json'):
+        try:
+            with open(filename) as json_file:
+                data = json.load(json_file)
+            return data
+        except:
+            raise
+
+
     def load_layer(self):
 
         #layer_gdf = gpd.read_file('qml/data/json/dpaw_regions.json')
         #layer_gdf = gpd.read_file(io.BytesIO(geojson_str))
-        geojson = self.retrieve_layer()
+        #import ipdb; ipdb.set_trace()
+
+        #geojson = self.retrieve_layer()
+        #layer_gdf1 = gpd.read_file(json.dumps(geojson))
+        geojson = self.retrieve_layer_from_file()
         layer_gdf1 = gpd.read_file(json.dumps(geojson))
 
         layer_qs = Layer.objects.filter(name=self.name, type=self.type, current=True)
@@ -55,8 +68,8 @@ class LayerLoader():
             current_layer = layer_qs[0]
             #import ipdb; ipdb.set_trace()
             layer_gdf2 = gpd.read_file(json.dumps(current_layer.geojson))
-            #if sorting(current_layer.geojson) == sorting(geojson):
-            if (layer_gdf1.loc[:, layer_gdf1.columns!='id'].sort_index(axis=1) == layer_gdf2.loc[:, layer_gdf2.columns!='id'].sort_index(axis=1)).eq(True).all().eq(True).all():
+
+            if not layer_changed(layer_gdf1, layer_gdf2):
                 # no change in geojson
                 logger.info(f'LAYER NOT UPDATED: No change in layer') 
                 return
@@ -96,27 +109,23 @@ class LayerLoader():
 
   
   
-def sorting(item):
-    """
-    Used to compare two json/geojson objects
+def layer_changed(layer_gdf1, layer_gdf2):
 
-    Usage:
-        json_1 = '{"Name":"GFG", "Class": "Website", "Domain":"CS/IT", "CEO":"Sandeep Jain","Subjects":["DSA","Python","C++","Java"]}'
-        json_2 = '{"CEO":"Sandeep Jain","Subjects":["C++","Python","DSA","Java"], "Domain":"CS/IT","Name": "GFG","Class": "Website"}'
+    # check columns are the same
+    cols1 = list(layer_gdf1.columns.sort_values())
+    cols2 = list(layer_gdf2.columns.sort_values())
+    if cols1 != cols2:
+        # GeoJSON has changed
+        return True
 
-        # Convert string into Python dictionary
-        json1_dict = json.loads(json_1)
-        json2_dict = json.loads(json_2)
-     
-        print(sorting(json1_dict) == sorting(json2_dict))    
-        --> True
-    """
+    # remove the 'id' column from layer_gdf's and sort the columns [index(axis=1)]
+    layer_gdf1 = layer_gdf1.loc[:, layer_gdf1.columns!='id'].sort_index(axis=1)
+    layer_gdf2 = layer_gdf2.loc[:, layer_gdf2.columns!='id'].sort_index(axis=1)
 
-    if isinstance(item, dict):
-        return sorted((key, sorting(values)) for key, values in item.items())
-    if isinstance(item, list):
-        return sorted(sorting(x) for x in item)
-    else:
-        return item
-  
-  
+    # check geo dataframes are the same
+    if (layer_gdf1 == layer_gdf2).eq(True).all().eq(True).all():
+        # GeoJSON has not changed
+        return False
+
+    return True
+

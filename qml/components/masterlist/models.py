@@ -1,7 +1,8 @@
 #from django.db import models
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields.jsonb import JSONField
-import copy
+import geopandas as gpd
+import json
 
 
 # Next lin needed, to migrate ledger_api_clinet module
@@ -61,6 +62,13 @@ class LayerBase(models.Model):
             return feature.srid
         return None
 
+    @property
+    def layer_to_gdf(self):
+        """
+        Layer to Geo Dataframe
+        """
+        return gpd.read_file(json.dumps(self.geojson))
+
     class Meta:
         abstract = True
         #app_label = 'qml'
@@ -77,12 +85,15 @@ class Layer(LayerBase):
     def layer_history(self):
         return LayerHistory.objects.filter(layer=self).order_by('-version')
 
+    @property
+    def version(self):
+        return LayerHistory.objects.filter(layer=self).order_by('-version')[0].version
+
     def save(self, *args, **kwargs):
-        from qml.utils.loader_utils import sorting
+        from qml.utils.loader_utils import layer_changed
         super(Layer, self).save(*args, **kwargs)
         # save layer history
-        import ipdb; ipdb.set_trace()
-        #_layer copy.deepcopy(layer)
+        #import ipdb; ipdb.set_trace()
         layer_history = self.layer_history
         if not layer_history or sorting(self.geojson) != sorting(layer_history[0].geojson):
             newLayer = LayerHistory(layer=self, name=self.name, type=self.type, geojson=self.geojson)
@@ -90,10 +101,9 @@ class Layer(LayerBase):
 
     class Meta:
         app_label = 'qml'
-        #unique_together = ('name', 'type',)
 
     def __str__(self):
-        return f'{self.type}:{self.name}' if self.type else f'{self.name}'
+        return f'{self.type}:{self.name}, version: {self.version}' if self.type else f'{self.name}, version: {self.version}'
 
 
 class LayerHistory(LayerBase):
