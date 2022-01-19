@@ -90,12 +90,13 @@ class Layer(LayerBase):
         return LayerHistory.objects.filter(layer=self).order_by('-version')[0].version
 
     def save(self, *args, **kwargs):
-        from qml.utils.loader_utils import layer_changed
+        from qml.utils.loader_utils import has_layer_changed
         super(Layer, self).save(*args, **kwargs)
+
         # save layer history
         #import ipdb; ipdb.set_trace()
         layer_history = self.layer_history
-        if not layer_history or sorting(self.geojson) != sorting(layer_history[0].geojson):
+        if not layer_history or has_layer_changed(self.layer_to_gdf, layer_history[0].layer_to_gdf):
             newLayer = LayerHistory(layer=self, name=self.name, type=self.type, geojson=self.geojson)
             newLayer.save()
 

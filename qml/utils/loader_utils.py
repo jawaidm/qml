@@ -69,7 +69,7 @@ class LayerLoader():
             #import ipdb; ipdb.set_trace()
             layer_gdf2 = gpd.read_file(json.dumps(current_layer.geojson))
 
-            if not layer_changed(layer_gdf1, layer_gdf2):
+            if not has_layer_changed(layer_gdf1, layer_gdf2):
                 # no change in geojson
                 logger.info(f'LAYER NOT UPDATED: No change in layer') 
                 return
@@ -82,7 +82,6 @@ class LayerLoader():
             layer = Layer.objects.create(name=self.name, type=self.type, geojson=geojson, current=True)
 
             # create the layer features/geometries
-            #layer_gdf1 = gpd.read_file(json.dumps(geojson))
             for idx, row in layer_gdf1.iterrows():
                 #print(idx, row)
                 cols = list(row.keys())
@@ -95,21 +94,7 @@ class LayerLoader():
             logger.info(f'Created Layer: {layer}, with {layer.feature_features.count()} features, srid {layer.srid}') 
 
 
-#            layer, created = Layer.objects.update_or_create(
-#                name=self.name,
-#                type=self.type,
-#                defaults={
-#                    'geojson': geojson 
-#                }
-#            )
-#
-#            if not created:
-#                layer.feature_features.all().delete() 
-
-
-  
-  
-def layer_changed(layer_gdf1, layer_gdf2):
+def has_layer_changed(layer_gdf1, layer_gdf2):
 
     # check columns are the same
     cols1 = list(layer_gdf1.columns.sort_values())

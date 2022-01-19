@@ -21,6 +21,7 @@ from qml import views
 #from qml.components.proposals import api as proposal_api
 #from qml.components.approvals import api as approval_api
 #from qml.components.compliances import api as compliances_api
+from qml.components.masterlist import api as masterlist_api
 from ledger_api_client.urls import urlpatterns as ledger_patterns
 
 # API patterns
@@ -47,6 +48,8 @@ router = routers.DefaultRouter()
 #router.register(r'assessments', proposal_api.ProposalAssessmentViewSet)
 #router.register(r'required_documents', main_api.RequiredDocumentViewSet)
 #router.register(r'questions', main_api.QuestionViewSet)
+router.register(r'layers', masterlist_api.LayerViewSet)
+router.register(r'layer_features',masterlist_api.FeatureViewSet)
 
 api_patterns = [
 #    url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
@@ -58,7 +61,7 @@ api_patterns = [
 #    url(r'^api/proposal_type$', proposal_api.GetProposalType.as_view(), name='get-proposal-type'),
 #    url(r'^api/empty_list$', proposal_api.GetEmptyList.as_view(), name='get-empty-list'),
 #    url(r'^api/organisation_access_group_members',org_api.OrganisationAccessGroupMembers.as_view(),name='organisation-access-group-members'),
-#    url(r'^api/',include(router.urls)),
+    url(r'^api/',include(router.urls)),
 #    url(r'^api/amendment_request_reason_choices',proposal_api.AmendmentRequestReasonChoicesView.as_view(),name='amendment_request_reason_choices'),
 #    url(r'^api/compliance_amendment_reason_choices',compliances_api.ComplianceAmendmentReasonChoicesView.as_view(),name='amendment_request_reason_choices'),
 #    url(r'^api/search_keywords',proposal_api.SearchKeywordsView.as_view(),name='search_keywords'),
@@ -67,6 +70,13 @@ api_patterns = [
 
 # URL Patterns
 urlpatterns = [
+    path(r'admin/', admin.site.urls),
+    path(r'admin/', admin.site.urls),
+    url(r'^logout/$', LogoutView.as_view(), {'next_page': '/'}, name='logout'),
+    url(r'', include(api_patterns)),
+    url(r'^$', views.QuestionMasterlistRoutingView.as_view(), name='ds_home'),
+
+
 #    path(r'admin/', admin.site.urls),
 #    #url(r'^admin/', include(qml_admin_site.urls)),
 #    #url(r'^admin/', qml_admin_site.urls),
@@ -89,8 +99,8 @@ urlpatterns = [
 #    url(r'^proposal/$', proposal_views.ProposalView.as_view(), name='proposal'),
 ] + ledger_patterns
 
-#if settings.EMAIL_INSTANCE != 'PROD':
-#    urlpatterns.append(path('accounts/', include('django.contrib.auth.urls')))
+if settings.EMAIL_INSTANCE != 'PROD':
+    urlpatterns.append(path('accounts/', include('django.contrib.auth.urls')))
 
 #if settings.DEBUG:  # Serve media locally in development.
 #    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

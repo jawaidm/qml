@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 import subprocess
 import os
-from qml.utils.loader_utils import LayerLoader, layer_changed
+from qml.utils.loader_utils import LayerLoader #, has_layer_changed
 from qml.components.masterlist.models import Layer, LayerHistory, Feature
 
 

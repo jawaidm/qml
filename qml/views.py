@@ -78,10 +78,10 @@ class QuestionMasterlistRoutingView(TemplateView):
         return redirect('/accounts/login')
 
 
-class BorangaContactView(TemplateView):
+class MasterlistContactView(TemplateView):
     template_name = 'qml/contact.html'
 
-class BorangaFurtherInformationView(TemplateView):
+class MasterlistFurtherInformationView(TemplateView):
     template_name = 'qml/further_info.html'
 
 #class InternalProposalView(DetailView):
