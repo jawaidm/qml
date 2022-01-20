@@ -35,7 +35,7 @@ class LayerLoader():
         
     def retrieve_layer(self):
         try:
-            res = requests.get('{}'.format(self.url), auth=(settings.KMI_USER,settings.KMI_TOKEN), verify=False)
+            res = requests.get('{}'.format(self.url), auth=(settings.LEDGER_USER,settings.LEDGER_PASS), verify=False)
             res.raise_for_status()
             #cache.set('department_users',json.loads(res.content).get('objects'),10800)
             return res.json()

@@ -16,16 +16,17 @@ logger = logging.getLogger(__name__)
 class GeoQueryHelper():
 
     def __init__(self, layer):
-        self.layer = layer
+        self.layer = layer if isinstance(layer, Layer) else gdf.read_file(layer)
 
     def filter_dict(self, feature, required_attributes):
         return dict((key,value) for key, value in feature.attributes.items() if key in required_attributes)
 
-    def intersection(self, required_attributes):
+    def intersection(self, required_attributes, polygon_geojson=None):
 
         #with open('qml/data/json/south_wa.json') as f:
-        with open('qml/data/json/goldfields.json') as f:
-            polygon_geojson = json.load(f)
+        if not polygon_geojson:
+            with open('qml/data/json/goldfields.json') as f:
+                polygon_geojson = json.load(f)
 
         intersection_geom = []
         for ft in polygon_geojson['features']:
@@ -48,3 +49,4 @@ class GeoQueryHelper():
                 print(intersection_geom)
             except TypeError as e:
                 print(e)
+        return intersection_geom

@@ -17,6 +17,7 @@ import traceback
 import json
 
 from qml.components.masterlist.models import Layer, LayerHistory, Feature
+from qml.utils.geoquery_utils import GeoQueryHelper
 from qml.components.masterlist.serializers import GeoTestSerializer, LayerSerializer, FeatureSerializer
 
 import logging
@@ -64,6 +65,25 @@ class FeatureViewSet(viewsets.ReadOnlyModelViewSet):
         qs.order_by('id')
         serializer = FeatureSerializer(qs,context={'request':request}, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['POST',])
+    def intersect(self, request, *args, **kwargs):            
+        """ 
+        http://localhost:8002/api/layer_features/50/intersect.json 
+
+        curl -d @qml/data/json/goldfields_curl_query.json -X POST http://localhost:8002/api/layer_features/50/intersect.json --header "Content-Type: application/json" --header "Accept: application/json"
+        """
+        #import ipdb; ipdb.set_trace()
+        names = request.data['names']
+        geojson = request.data['geojson']
+        layer = self.get_object()
+
+
+        helper=GeoQueryHelper(layer)
+        #res = helper.intersection(['region', 'office'], request.data)
+        res = helper.intersection(names, geojson)
+        return Response(res)
+
 
 
 #    @detail_route(methods=['GET',])

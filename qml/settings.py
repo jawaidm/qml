@@ -12,8 +12,8 @@ ROOT_URLCONF = 'qml.urls'
 SITE_ID = 1
 DEPT_DOMAINS = env('DEPT_DOMAINS', ['dpaw.wa.gov.au', 'dbca.wa.gov.au'])
 SYSTEM_MAINTENANCE_WARNING = env('SYSTEM_MAINTENANCE_WARNING', 24) # hours
-KMI_USER = env('KMI_USER', 'asi@dbca.wa.gov.au')
-KMI_TOKEN = env('KMI_TOKEN')
+LEDGER_USER = env('LEDGER_USER', 'asi@dbca.wa.gov.au')
+LEDGER_PASS = env('LEDGER_PASS')
 SHOW_DEBUG_TOOLBAR = env('SHOW_DEBUG_TOOLBAR', False)
 BUILD_TAG = env('BUILD_TAG', hashlib.md5(os.urandom(32)).hexdigest())  # URL of the Dev app.js served by webpack & express
 
