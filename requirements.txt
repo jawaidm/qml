@@ -3,7 +3,7 @@ git+git://github.com/dbca-wa/dbca-utils@1.1.1#egg=dbca-utils
 psycopg2-binary==2.8.5
 Django==3.2.4
 django-extensions==1.9.8
-ipython==7.19.0
+ipython==7.31.1
 social-auth-app-django==2.1.0
 #git+https://github.com/xzzy/ledger_api_client.git#egg=ledger_api_client
 git+https://github.com/xzzy/ledger_api_client.git@c6d6fef2c82e3fc821d4132ffbcfa81c98929047#egg=ledger_api_client
