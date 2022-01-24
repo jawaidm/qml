@@ -18,7 +18,7 @@ import json
 
 from qml.components.masterlist.models import Layer, LayerHistory, Feature
 from qml.utils.geoquery_utils import GeoQueryHelper
-from qml.components.masterlist.serializers import GeoTestSerializer, LayerSerializer, FeatureSerializer
+from qml.components.masterlist.serializers import GeoTestSerializer, LayerSerializer, FeatureGeometrySerializer
 
 import logging
 #logger = logging.getLogger('payment_checkout')
@@ -51,6 +51,13 @@ class LayerViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Layer.objects.filter(current=True).order_by('id')
     serializer_class = LayerSerializer
 
+    @action(detail=True, methods=['GET',])
+    def layer(self, request, *args, **kwargs):            
+        """ http://localhost:8002/api/layers/50/layer.json """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance) 
+        return Response(serializer.data)
+
 
 class FeatureViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Layer.objects.all().order_by('id')
@@ -63,7 +70,7 @@ class FeatureViewSet(viewsets.ReadOnlyModelViewSet):
         instance = self.get_object()
         qs = instance.feature_features.all()
         qs.order_by('id')
-        serializer = FeatureSerializer(qs,context={'request':request}, many=True)
+        serializer = FeatureGeometrySerializer(qs,context={'request':request}, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=['POST',])

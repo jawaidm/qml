@@ -6,6 +6,7 @@ import geopandas as gpd
 import requests
 import json
 import os
+import io
 
 from qml.components.masterlist.models import Layer, Feature#, LayerHistory
 
@@ -21,7 +22,7 @@ class GeoQueryHelper():
     def filter_dict(self, feature, required_attributes):
         return dict((key,value) for key, value in feature.attributes.items() if key in required_attributes)
 
-    def intersection(self, required_attributes, polygon_geojson=None):
+    def intersection_v1(self, required_attributes, polygon_geojson=None):
 
         #with open('qml/data/json/south_wa.json') as f:
         if not polygon_geojson:
@@ -50,3 +51,18 @@ class GeoQueryHelper():
             except TypeError as e:
                 print(e)
         return intersection_geom
+
+    def intersection(self, required_attributes, mpoly=None):
+
+        #import ipdb; ipdb.set_trace()
+        if not mpoly:
+            mpoly = gpd.read_file('qml/data/json/goldfields.json')
+        else:
+            mpoly = gpd.read_file(json.dumps(mpoly))
+
+        layer_gdf = self.layer.layer_to_gdf
+        layer_gdf.to_crs(mpoly.crs, inplace=True)
+        overlay = layer_gdf.overlay(mpoly, how='intersection')
+
+        return overlay[required_attributes].to_json()
+

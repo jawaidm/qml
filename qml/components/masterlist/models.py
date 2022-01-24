@@ -29,7 +29,7 @@ class DpawRegion(models.Model):
         return self.region
 
 class Feature(models.Model):
-    attributes = JSONField(db_index=True)
+    properties = JSONField(db_index=True)
     geometry = models.MultiPolygonField()
     layer = models.ForeignKey('Layer', on_delete=models.CASCADE, related_name='%(class)s_features')
  
@@ -42,7 +42,7 @@ class Feature(models.Model):
 
     @property
     def fid(self):
-        return self.attributes['id'] if 'id' in self.attributes else 'NO_ID'
+        return self.properties['id'] if 'id' in self.properties else 'NO_ID'
 
     def __str__(self):
         return f'{self.fid}'
